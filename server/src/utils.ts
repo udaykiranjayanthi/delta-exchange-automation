@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { Position, Price } from "./types";
 
 export function createSignature({
   method,
@@ -36,4 +37,24 @@ export function createSignatureForWebsocket({
 
   // HMAC SHA256 with secretKey
   return crypto.createHmac("sha256", secretKey).update(prehash).digest("hex");
+}
+
+export function canSell({
+  positions,
+  prices,
+  upperLimit,
+  lowerLimit,
+}: {
+  positions: Position[];
+  prices: Record<string, Price>;
+  upperLimit: number;
+  lowerLimit: number;
+}): boolean {
+  let totalPositionValue = 0;
+  for (const position of positions) {
+    const price = prices[`MARK:${position.product_symbol}`];
+    totalPositionValue += position.size * parseFloat(price.price);
+  }
+
+  return totalPositionValue <= lowerLimit || totalPositionValue >= upperLimit;
 }

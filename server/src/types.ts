@@ -33,3 +33,10 @@ export interface Trade {
   created_at: string;
   [key: string]: unknown;
 }
+
+export interface Price {
+  type: string;
+  symbol: string;
+  price: string;
+  [key: string]: unknown;
+}

@@ -14,26 +14,31 @@ import { socket } from "../common/socket";
 interface SummaryProps {
   prices: Record<string, Price>;
   positions: Position[];
-  sellMax: number | null;
-  sellMin: number | null;
+  upperLimit: number | null;
+  lowerLimit: number | null;
 }
 
-export function Summary({ prices, positions, sellMax, sellMin }: SummaryProps) {
-  const [isEditingSellMax, setIsEditingSellMax] = useState(false);
-  const [isEditingSellMin, setIsEditingSellMin] = useState(false);
-  const [sellMaxValue, setSellMaxValue] = useState<string>(
-    sellMax?.toString() || ""
+export function Summary({
+  prices,
+  positions,
+  upperLimit,
+  lowerLimit,
+}: SummaryProps) {
+  const [isEditingUpperLimit, setIsEditingUpperLimit] = useState(false);
+  const [isEditingLowerLimit, setIsEditingLowerLimit] = useState(false);
+  const [upperLimitValue, setupperLimitValue] = useState<string>(
+    upperLimit?.toString() || ""
   );
-  const [sellMinValue, setSellMinValue] = useState<string>(
-    sellMin?.toString() || ""
+  const [lowerLimitValue, setLowerLimitValue] = useState<string>(
+    lowerLimit?.toString() || ""
   );
   const [showPercentage, setShowPercentage] = useState(false);
 
   // Update local state when props change
   useEffect(() => {
-    if (sellMax !== null) setSellMaxValue(sellMax.toString());
-    if (sellMin !== null) setSellMinValue(sellMin.toString());
-  }, [sellMax, sellMin]);
+    if (upperLimit !== null) setupperLimitValue(upperLimit.toString());
+    if (lowerLimit !== null) setLowerLimitValue(lowerLimit.toString());
+  }, [upperLimit, lowerLimit]);
 
   const invested = Object.values(positions).reduce(
     (acc, position) => acc + parseFloat(position.entry_price) * position.size,
@@ -47,14 +52,14 @@ export function Summary({ prices, positions, sellMax, sellMin }: SummaryProps) {
   }, 0);
   const returns = currentValue - invested;
 
-  const handleSellMaxSubmit = () => {
-    socket.emit("sellMax", parseFloat(sellMaxValue));
-    setIsEditingSellMax(false);
+  const handleUpperLimitSubmit = () => {
+    socket.emit("upperLimit", parseFloat(upperLimitValue));
+    setIsEditingUpperLimit(false);
   };
 
-  const handleSellMinSubmit = () => {
-    socket.emit("sellMin", parseFloat(sellMinValue));
-    setIsEditingSellMin(false);
+  const handleLowerLimitSubmit = () => {
+    socket.emit("lowerLimit", parseFloat(lowerLimitValue));
+    setIsEditingLowerLimit(false);
   };
 
   return (
@@ -90,58 +95,58 @@ export function Summary({ prices, positions, sellMax, sellMin }: SummaryProps) {
       <Card withBorder>
         <Flex align="center" gap="xs">
           <Text fw={600} c="dimmed">
-            Sell Max
+            Upper Limit
           </Text>
           <ActionIcon
             size="xs"
             variant="subtle"
-            onClick={() => setIsEditingSellMax(!isEditingSellMax)}
+            onClick={() => setIsEditingUpperLimit(!isEditingUpperLimit)}
           >
             <IconPencil size={18} />
           </ActionIcon>
         </Flex>
-        {isEditingSellMax ? (
+        {isEditingUpperLimit ? (
           <Flex align="center">
             <TextInput
               size="sm"
               w="6rem"
-              value={sellMaxValue}
-              onChange={(e) => setSellMaxValue(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSellMaxSubmit()}
+              value={upperLimitValue}
+              onChange={(e) => setupperLimitValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleUpperLimitSubmit()}
               placeholder="Max"
             />
           </Flex>
         ) : (
-          <Text mt="xs">{sellMax || "N/A"}</Text>
+          <Text mt="xs">{upperLimit || "N/A"}</Text>
         )}
       </Card>
 
       <Card withBorder>
         <Flex align="center" gap="xs">
           <Text fw={600} c="dimmed">
-            Sell Min
+            Lower Limit
           </Text>
           <ActionIcon
             size="xs"
             variant="subtle"
-            onClick={() => setIsEditingSellMin(!isEditingSellMin)}
+            onClick={() => setIsEditingLowerLimit(!isEditingLowerLimit)}
           >
             <IconPencil size={18} />
           </ActionIcon>
         </Flex>
-        {isEditingSellMin ? (
+        {isEditingLowerLimit ? (
           <Flex align="center">
             <TextInput
               size="sm"
               w="6rem"
-              value={sellMinValue}
-              onChange={(e) => setSellMinValue(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSellMinSubmit()}
+              value={lowerLimitValue}
+              onChange={(e) => setLowerLimitValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleLowerLimitSubmit()}
               placeholder="Min"
             />
           </Flex>
         ) : (
-          <Text mt="xs">{sellMin || "N/A"}</Text>
+          <Text mt="xs">{lowerLimit || "N/A"}</Text>
         )}
       </Card>
     </SimpleGrid>

@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import axios from "axios";
 import dotenv from "dotenv";
-import { createSignature, createSignatureForWebsocket } from "./utils";
+import { canSell, createSignature, createSignatureForWebsocket } from "./utils";
 import express, { Application, Request, Response } from "express";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
@@ -31,8 +31,8 @@ app.get("/", (req: Request, res: Response) => {
 let positions: Record<string, Position> = {};
 let orders: Record<number, Order> = {};
 let prices: Record<string, any> = {};
-let sellMax: number | null = null;
-let sellMin: number | null = null;
+let upperLimit: number | null = null;
+let lowerLimit: number | null = null;
 
 // Track position symbols for ticker subscriptions
 let positionSymbols: string[] = [];
@@ -43,17 +43,17 @@ io.on("connection", (socket) => {
   socket.emit("positions", Object.values(positions));
   socket.emit("orders", Object.values(orders));
   socket.emit("prices", Object.values(prices));
-  socket.emit("sellMax", sellMax);
-  socket.emit("sellMin", sellMin);
+  socket.emit("upperLimit", upperLimit);
+  socket.emit("lowerLimit", lowerLimit);
 
-  socket.on("sellMax", (data: number) => {
-    sellMax = data;
-    io.emit("sellMax", sellMax);
+  socket.on("upperLimit", (data: number) => {
+    upperLimit = data;
+    io.emit("upperLimit", upperLimit);
   });
 
-  socket.on("sellMin", (data: number) => {
-    sellMin = data;
-    io.emit("sellMin", sellMin);
+  socket.on("lowerLimit", (data: number) => {
+    lowerLimit = data;
+    io.emit("lowerLimit", lowerLimit);
   });
 
   socket.on("disconnect", () => {
@@ -280,6 +280,16 @@ ws.on("message", (message: string) => {
       // Emit updated prices to all clients
       io.emit("prices", prices);
       console.log(`Received ticker update for ${parsedMessage.symbol} ✅`);
+    }
+
+    if (upperLimit && lowerLimit) {
+      const canSellResult = canSell({
+        positions: Object.values(positions),
+        prices,
+        upperLimit,
+        lowerLimit,
+      });
+      console.log("canSell", canSellResult);
     }
   }
 });

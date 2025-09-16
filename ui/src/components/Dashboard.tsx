@@ -16,8 +16,8 @@ export function Dashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [sellMax, setSellMax] = useState<number | null>(null);
-  const [sellMin, setSellMin] = useState<number | null>(null);
+  const [upperLimit, setUpperLimit] = useState<number | null>(null);
+  const [lowerLimit, setLowerLimit] = useState<number | null>(null);
 
   useEffect(() => {
     // Connect to the server
@@ -48,12 +48,12 @@ export function Dashboard() {
       setPrices(data);
     });
 
-    socket.on("sellMax", (data: number) => {
-      setSellMax(data);
+    socket.on("upperLimit", (data: number) => {
+      setUpperLimit(data);
     });
 
-    socket.on("sellMin", (data: number) => {
-      setSellMin(data);
+    socket.on("lowerLimit", (data: number) => {
+      setLowerLimit(data);
     });
 
     // Clean up on unmount
@@ -91,8 +91,8 @@ export function Dashboard() {
           <Summary
             prices={prices}
             positions={positions}
-            sellMax={sellMax}
-            sellMin={sellMin}
+            upperLimit={upperLimit}
+            lowerLimit={lowerLimit}
           />
         </Card>
       </Group>
