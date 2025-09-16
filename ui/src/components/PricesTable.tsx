@@ -19,14 +19,14 @@ export function PricesTable({ prices }: PositionsTableProps) {
       <Table.Thead>
         <Table.Tr>
           {prices.map((price) => (
-            <Table.Th key={price.symbol}>{price.symbol}</Table.Th>
+            <Table.Th key={price.symbol}>{price.symbol.split(":")[1]}</Table.Th>
           ))}
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
         <Table.Tr>
           {prices.map((price) => (
-            <Table.Td key={price.symbol}>{price.spot_price}</Table.Td>
+            <Table.Td key={price.symbol}>{price.price}</Table.Td>
           ))}
         </Table.Tr>
       </Table.Tbody>

@@ -30,8 +30,11 @@ app.get("/", (req: Request, res: Response) => {
 
 let positions: Record<string, Position> = {};
 let orders: Record<number, Order> = {};
-let prices: Record<string, number> = {};
+let prices: Record<string, any> = {};
 // let trades: Trade[] = [];
+
+// Track position symbols for ticker subscriptions
+let positionSymbols: string[] = [];
 
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
@@ -169,16 +172,14 @@ ws.on("message", (message: string) => {
   const parsedMessage = JSON.parse(message);
   console.log("Received from server: ", parsedMessage.type);
 
-  // Process message for UI
-  // processWebSocketMessage(parsedMessage);
-
   if (
     parsedMessage.type === "success" &&
     parsedMessage.message === "Authenticated"
   ) {
     console.log("Authenticated ✅");
-
     console.log("Subscribing to channels...");
+
+    // Subscribe to channels
     ws.send(
       JSON.stringify({
         type: "subscribe",
@@ -192,10 +193,8 @@ ws.on("message", (message: string) => {
               name: "orders",
               symbols: ["all"],
             },
-            // {
-            //   name: "v2/ticker",
-            //   symbols: ["all"],
-            // },
+            // Initially we don't subscribe to any tickers
+            // Will subscribe based on positions
           ],
         },
       })
@@ -203,6 +202,9 @@ ws.on("message", (message: string) => {
   }
 
   if (parsedMessage.type === "positions") {
+    const oldPositionSymbols = [...positionSymbols];
+    positionSymbols = [];
+
     if (parsedMessage.action === "snapshot") {
       parsedMessage.result.forEach((position: Position) => {
         positions[position.product_symbol] = position;
@@ -212,9 +214,57 @@ ws.on("message", (message: string) => {
       positions[position.product_symbol] = position;
     }
 
+    // Update position symbols list with unique symbols
+    positionSymbols = Array.from(
+      new Set(
+        Object.values(positions).map((pos) => `MARK:${pos.product_symbol}`)
+      )
+    );
+
     // Emit updated positions to all clients
     io.emit("positions", Object.values(positions));
     console.log("Received position update ✅");
+
+    // Check if position symbols have changed
+    if (
+      JSON.stringify(oldPositionSymbols.sort()) !==
+      JSON.stringify(positionSymbols.sort())
+    ) {
+      console.log("Position symbols changed, updating ticker subscriptions");
+      // Unsubscribe from old tickers
+      if (oldPositionSymbols.length > 0) {
+        ws.send(
+          JSON.stringify({
+            type: "unsubscribe",
+            payload: {
+              channels: [
+                {
+                  name: "mark_price",
+                  symbols: oldPositionSymbols,
+                },
+              ],
+            },
+          })
+        );
+      }
+
+      // Subscribe to new tickers
+      if (positionSymbols.length > 0) {
+        ws.send(
+          JSON.stringify({
+            type: "subscribe",
+            payload: {
+              channels: [
+                {
+                  name: "mark_price",
+                  symbols: positionSymbols,
+                },
+              ],
+            },
+          })
+        );
+      }
+    }
   }
 
   if (parsedMessage.type === "orders") {
@@ -240,12 +290,15 @@ ws.on("message", (message: string) => {
     console.log("Received order update ✅");
   }
 
-  if (parsedMessage.type === "v2/ticker") {
-    prices[parsedMessage.symbol] = parsedMessage;
+  if (parsedMessage.type === "mark_price") {
+    // Only store tickers for symbols we have positions in
+    if (positionSymbols.includes(parsedMessage.symbol)) {
+      prices[parsedMessage.symbol] = parsedMessage;
 
-    // Emit updated orders to all clients
-    io.emit("prices", Object.values(prices));
-    console.log("Received ticker update ✅");
+      // Emit updated prices to all clients
+      io.emit("prices", Object.values(prices));
+      console.log(`Received ticker update for ${parsedMessage.symbol} ✅`);
+    }
   }
 });
 

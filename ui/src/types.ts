@@ -33,9 +33,7 @@ export interface Trade {
 export interface Prices {
   type: string;
   symbol: string;
-  turnover_symbol: string;
-  spot_price: string;
-  mark_price: string;
+  price: string;
   [key: string]: unknown;
 }
 

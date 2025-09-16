@@ -72,10 +72,10 @@ export function Dashboard() {
       </Card>
 
       <Card shadow="sm" withBorder mb="md">
-        <Group justify="space-between">
-          <Title order={4}>Prices</Title>
+        <Flex justify="space-between" mb="md">
+          <Title order={4}>Prices (active positions)</Title>
           <Text fw={500}>{prices.length}</Text>
-        </Group>
+        </Flex>
         <PricesTable prices={prices} />
       </Card>
 
