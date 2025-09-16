@@ -1,0 +1,407 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delta Exchange Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      background-color: #1a1a2e;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    h1, h2 {
+      margin: 0;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+    }
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .connected {
+      background-color: #4caf50;
+    }
+    .disconnected {
+      background-color: #f44336;
+    }
+    .card {
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card-header {
+      background-color: #16213e;
+      color: white;
+      padding: 12px 20px;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-body {
+      padding: 15px 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      font-weight: 600;
+      color: #555;
+    }
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+    .buy {
+      color: #4caf50;
+    }
+    .sell {
+      color: #f44336;
+    }
+    .timestamp {
+      color: #777;
+      font-size: 0.85em;
+    }
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+    .badge-open {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+    .badge-closed {
+      background-color: #e8f5e9;
+      color: #388e3c;
+    }
+    .badge-cancelled {
+      background-color: #ffebee;
+      color: #d32f2f;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: #999;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active {
+      border-bottom: 2px solid #1976d2;
+      color: #1976d2;
+      font-weight: 500;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Delta Exchange Dashboard</h1>
+      <div class="status">
+        <div id="status-indicator" class="status-indicator disconnected"></div>
+        <span id="status-text">Disconnected</span>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="orders">Orders</div>
+      <div class="tab" data-tab="positions">Positions</div>
+      <div class="tab" data-tab="trades">Trades</div>
+    </div>
+
+    <div id="orders" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <h2>Orders</h2>
+          <span id="orders-count">0</span>
+        </div>
+        <div class="card-body">
+          <table id="orders-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Size</th>
+                <th>Type</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="8" class="empty-state">No orders yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="positions" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Positions</h2>
+          <span id="positions-count">0</span>
+        </div>
+        <div class="card-body">
+          <table id="positions-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Size</th>
+                <th>Entry Price</th>
+                <th>Liquidation Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" class="empty-state">No positions yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="trades" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Trades</h2>
+          <span id="trades-count">0</span>
+        </div>
+        <div class="card-body">
+          <table id="trades-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Size</th>
+                <th>Price</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="6" class="empty-state">No trades yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Connect to Socket.IO server
+    const socket = io();
+    const statusIndicator = document.getElementById('status-indicator');
+    const statusText = document.getElementById('status-text');
+    
+    // Update connection status
+    socket.on('connect', () => {
+      statusIndicator.classList.remove('disconnected');
+      statusIndicator.classList.add('connected');
+      statusText.textContent = 'Connected';
+    });
+    
+    socket.on('disconnect', () => {
+      statusIndicator.classList.remove('connected');
+      statusIndicator.classList.add('disconnected');
+      statusText.textContent = 'Disconnected';
+    });
+
+    // Tab functionality
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.getAttribute('data-tab');
+        
+        // Remove active class from all tabs and contents
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        // Add active class to current tab and content
+        tab.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    // Handle orders updates
+    socket.on('orders', (data) => {
+      const ordersTable = document.getElementById('orders-table').getElementsByTagName('tbody')[0];
+      const ordersCount = document.getElementById('orders-count');
+      
+      // Clear empty state if needed
+      if (ordersTable.innerHTML.includes('No orders yet')) {
+        ordersTable.innerHTML = '';
+      }
+      
+      // Update orders count
+      ordersCount.textContent = data.length;
+      
+      // Clear table and add all orders
+      ordersTable.innerHTML = '';
+      
+      if (data.length === 0) {
+        ordersTable.innerHTML = '<tr><td colspan="8" class="empty-state">No orders yet</td></tr>';
+        return;
+      }
+      
+      data.forEach(order => {
+        const row = document.createElement('tr');
+        
+        // Get status badge class
+        let badgeClass = 'badge-open';
+        if (order.state === 'closed') {
+          badgeClass = 'badge-closed';
+        } else if (order.state === 'cancelled') {
+          badgeClass = 'badge-cancelled';
+        }
+        
+        // Format date
+        const createdAt = new Date(order.created_at).toLocaleString();
+        
+        row.innerHTML = `
+          <td>${order.id}</td>
+          <td>${order.product_symbol}</td>
+          <td class="${order.side}">${order.side.toUpperCase()}</td>
+          <td>${order.size}</td>
+          <td>${order.order_type.replace('_', ' ')}</td>
+          <td>${order.average_fill_price || order.limit_price || '-'}</td>
+          <td><span class="badge ${badgeClass}">${order.state}</span></td>
+          <td>${createdAt}</td>
+        `;
+        
+        ordersTable.appendChild(row);
+      });
+    });
+
+    // Handle positions updates
+    socket.on('positions', (data) => {
+      const positionsTable = document.getElementById('positions-table').getElementsByTagName('tbody')[0];
+      const positionsCount = document.getElementById('positions-count');
+      
+      // Clear empty state if needed
+      if (positionsTable.innerHTML.includes('No positions yet')) {
+        positionsTable.innerHTML = '';
+      }
+      
+      // Update positions count
+      positionsCount.textContent = data.length;
+      
+      // Clear table and add all positions
+      positionsTable.innerHTML = '';
+      
+      if (data.length === 0) {
+        positionsTable.innerHTML = '<tr><td colspan="4" class="empty-state">No positions yet</td></tr>';
+        return;
+      }
+      
+      data.forEach(position => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+          <td>${position.product_symbol}</td>
+          <td class="${position.size > 0 ? 'buy' : 'sell'}">${position.size}</td>
+          <td>${position.entry_price}</td>
+          <td>${position.liquidation_price || '-'}</td>
+        `;
+        
+        positionsTable.appendChild(row);
+      });
+    });
+
+    // Handle trades updates
+    socket.on('trades', (data) => {
+      const tradesTable = document.getElementById('trades-table').getElementsByTagName('tbody')[0];
+      const tradesCount = document.getElementById('trades-count');
+      
+      // Clear empty state if needed
+      if (tradesTable.innerHTML.includes('No trades yet')) {
+        tradesTable.innerHTML = '';
+      }
+      
+      // Update trades count
+      tradesCount.textContent = data.length;
+      
+      // Clear table and add all trades
+      tradesTable.innerHTML = '';
+      
+      if (data.length === 0) {
+        tradesTable.innerHTML = '<tr><td colspan="6" class="empty-state">No trades yet</td></tr>';
+        return;
+      }
+      
+      data.forEach(trade => {
+        const row = document.createElement('tr');
+        
+        // Format date
+        const createdAt = new Date(trade.created_at).toLocaleString();
+        
+        row.innerHTML = `
+          <td>${trade.id}</td>
+          <td>${trade.product_symbol}</td>
+          <td class="${trade.side}">${trade.side.toUpperCase()}</td>
+          <td>${trade.size}</td>
+          <td>${trade.price}</td>
+          <td>${createdAt}</td>
+        `;
+        
+        tradesTable.appendChild(row);
+      });
+    });
+  </script>
+</body>
+</html>

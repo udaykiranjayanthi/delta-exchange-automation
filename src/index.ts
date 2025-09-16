@@ -2,10 +2,15 @@ import WebSocket from "ws";
 import crypto from "crypto";
 import axios from "axios";
 import dotenv from "dotenv";
+import { initializeUI, processWebSocketMessage } from "./renderUI";
+
 dotenv.config();
 
 const apiKey = process.env.API_KEY || "";
 const apiSecret = process.env.API_SECRET || "";
+
+// Initialize UI
+const ui = initializeUI();
 
 function createSignature({
   method,
@@ -119,6 +124,9 @@ ws.on("message", (message: string) => {
   const parsedMessage = JSON.parse(message);
   console.log("Received from server: ", parsedMessage);
 
+  // Process message for UI
+  processWebSocketMessage(parsedMessage);
+
   if (
     parsedMessage.type === "success" &&
     parsedMessage.message === "Authenticated"
@@ -151,12 +159,19 @@ ws.on("message", (message: string) => {
 
   if (parsedMessage.type === "subscriptions") {
     console.log("Subscribed to channels ✅");
-    // console.log(parsedMessage);
+    console.log(`UI available at http://localhost:${ui.port}`);
   }
 
   if (parsedMessage.type === "orders") {
     console.log("Received order update ✅");
-    // console.log(parsedMessage);
+  }
+
+  if (parsedMessage.type === "positions") {
+    console.log("Received position update ✅");
+  }
+
+  if (parsedMessage.type === "v2/user_trades") {
+    console.log("Received trade update ✅");
   }
 });
 
