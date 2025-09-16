@@ -68,7 +68,7 @@ export function Dashboard() {
               </Text>
             </Group>
           </Tabs.Tab>
-          {/* <Tabs.Tab value="orders">
+          <Tabs.Tab value="orders">
             <Group gap="xs">
               <Text>Orders</Text>
               <Text size="xs" c="dimmed" fw={500}>
@@ -76,7 +76,7 @@ export function Dashboard() {
               </Text>
             </Group>
           </Tabs.Tab>
-          <Tabs.Tab value="trades">
+          {/* <Tabs.Tab value="trades">
             <Group gap="xs">
               <Text>Trades</Text>
               <Text size="xs" c="dimmed" fw={500}>

@@ -28,16 +28,15 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Socket.IO Server is running 🚀");
 });
 
-// Function to process WebSocket messages
 let positions: Record<string, Position> = {};
-// let orders: Record<number, Order> = {};
+let orders: Record<number, Order> = {};
 // let trades: Trade[] = [];
 
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
 
   socket.emit("positions", Object.values(positions));
-  // socket.emit("orders", Object.values(orders));
+  socket.emit("orders", Object.values(orders));
   // socket.emit("trades", trades);
 });
 
@@ -53,20 +52,20 @@ function processWebSocketMessage(message: any) {
     io.emit("positions", Object.values(positions));
   }
 
-  // // Process orders
-  // if (message.type === "orders") {
-  //   const order = message;
-  //   if (order.action === "create" || order.action === "update") {
-  //     orders[order.id] = order;
-  //   } else if (order.action === "delete") {
-  //     if (orders[order.id]) {
-  //       orders[order.id] = { ...orders[order.id], ...order };
-  //     }
-  //   }
+  // Process orders
+  if (message.type === "orders") {
+    const order = message;
+    if (order.action === "create" || order.action === "update") {
+      orders[order.id] = order;
+    } else if (order.action === "delete") {
+      if (orders[order.id]) {
+        orders[order.id] = { ...orders[order.id], ...order };
+      }
+    }
 
-  //   // Emit updated orders to all clients
-  //   io.emit("orders", Object.values(orders));
-  // }
+    // Emit updated orders to all clients
+    io.emit("orders", Object.values(orders));
+  }
 
   // // Process trades
   // if (message.type === "v2/user_trades") {
@@ -195,10 +194,10 @@ ws.on("message", (message: string) => {
               name: "positions",
               symbols: ["all"],
             },
-            // {
-            //   name: "orders",
-            //   symbols: ["all"],
-            // },
+            {
+              name: "orders",
+              symbols: ["all"],
+            },
             // {
             //   name: "v2/user_trades",
             //   symbols: ["all"],
@@ -214,6 +213,13 @@ ws.on("message", (message: string) => {
       positions = parsedMessage.result;
     }
     console.log("Received position update ✅");
+  }
+
+  if (parsedMessage.type === "orders") {
+    if (parsedMessage.action === "snapshot") {
+      orders = parsedMessage.result;
+    }
+    console.log("Received order update ✅");
   }
 
   // if (parsedMessage.type === "v2/user_trades") {
