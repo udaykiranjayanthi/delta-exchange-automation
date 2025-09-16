@@ -1,11 +1,16 @@
-import './App.css';
+import { MantineProvider, createTheme } from '@mantine/core';
+import '@mantine/core/styles.css';
+import { Dashboard } from './components/Dashboard';
+
+const theme = createTheme({
+  primaryColor: 'blue',
+});
 
 const App = () => {
   return (
-    <div className="content">
-      <h1>Rsbuild with React</h1>
-      <p>Start building amazing things with Rsbuild.</p>
-    </div>
+    <MantineProvider theme={theme}>
+      <Dashboard />
+    </MantineProvider>
   );
 };
 

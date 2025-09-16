@@ -1,4 +1,3 @@
-// Types for the WebSocket messages
 export interface Order {
   id: number;
   product_symbol: string;
@@ -7,10 +6,9 @@ export interface Order {
   state: string;
   order_type: string;
   average_fill_price: string | null;
-  limit_price?: string | null;
+  limit_price: string | null;
   created_at: string;
   updated_at: string;
-  action?: string;
   [key: string]: unknown;
 }
 
@@ -19,8 +17,6 @@ export interface Position {
   size: number;
   entry_price: string;
   liquidation_price: string | null;
-  mark_price?: string;
-  unrealized_pnl?: string;
   [key: string]: unknown;
 }
 
@@ -33,3 +29,5 @@ export interface Trade {
   created_at: string;
   [key: string]: unknown;
 }
+
+export type ConnectionStatus = 'connected' | 'disconnected';
