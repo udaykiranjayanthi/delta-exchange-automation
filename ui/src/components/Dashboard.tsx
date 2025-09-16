@@ -5,11 +5,19 @@ import { StatusIndicator } from "./StatusIndicator";
 import { OrdersTable } from "./OrdersTable";
 import { PositionsTable } from "./PositionsTable";
 import { TradesTable } from "./TradesTable";
-import type { ConnectionStatus, Order, Position, Trade } from "../types";
+import type {
+  ConnectionStatus,
+  Order,
+  Position,
+  Prices,
+  Trade,
+} from "../types";
+import { PricesTable } from "./PricesTable";
 
 export function Dashboard() {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
+  const [prices, setPrices] = useState<Prices[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -39,6 +47,10 @@ export function Dashboard() {
       setTrades(data);
     });
 
+    socketInstance.on("prices", (data: Prices[]) => {
+      setPrices(data);
+    });
+
     // Clean up on unmount
     return () => {
       socketInstance.disconnect();
@@ -48,6 +60,7 @@ export function Dashboard() {
   console.log("Orders:", orders);
   console.log("Positions:", positions);
   console.log("Trades:", trades);
+  console.log("Prices:", prices);
 
   return (
     <Container size="xl" py="md">
@@ -56,6 +69,14 @@ export function Dashboard() {
           <Title order={3}>Delta Exchange Dashboard</Title>
           <StatusIndicator status={connectionStatus} />
         </Group>
+      </Card>
+
+      <Card shadow="sm" withBorder mb="md">
+        <Group justify="space-between">
+          <Title order={4}>Prices</Title>
+          <Text fw={500}>{prices.length}</Text>
+        </Group>
+        <PricesTable prices={prices} />
       </Card>
 
       <Tabs defaultValue="positions">

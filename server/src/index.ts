@@ -30,6 +30,7 @@ app.get("/", (req: Request, res: Response) => {
 
 let positions: Record<string, Position> = {};
 let orders: Record<number, Order> = {};
+let prices: Record<string, number> = {};
 // let trades: Trade[] = [];
 
 io.on("connection", (socket) => {
@@ -44,13 +45,6 @@ function processWebSocketMessage(message: any) {
   if (!message) return;
 
   // Process positions
-  if (message.type === "positions" && message.action !== "snapshot") {
-    const position = message;
-    positions[position.product_symbol] = position;
-
-    // Emit updated positions to all clients
-    io.emit("positions", Object.values(positions));
-  }
 
   // Process orders
   if (message.type === "orders") {
@@ -173,10 +167,10 @@ ws.on("open", () => {
 
 ws.on("message", (message: string) => {
   const parsedMessage = JSON.parse(message);
-  console.log("Received from server: ", parsedMessage);
+  console.log("Received from server: ", parsedMessage.type);
 
   // Process message for UI
-  processWebSocketMessage(parsedMessage);
+  // processWebSocketMessage(parsedMessage);
 
   if (
     parsedMessage.type === "success" &&
@@ -199,7 +193,7 @@ ws.on("message", (message: string) => {
               symbols: ["all"],
             },
             // {
-            //   name: "v2/user_trades",
+            //   name: "v2/ticker",
             //   symbols: ["all"],
             // },
           ],
@@ -210,29 +204,49 @@ ws.on("message", (message: string) => {
 
   if (parsedMessage.type === "positions") {
     if (parsedMessage.action === "snapshot") {
-      positions = parsedMessage.result;
+      parsedMessage.result.forEach((position: Position) => {
+        positions[position.product_symbol] = position;
+      });
+    } else {
+      const position = parsedMessage;
+      positions[position.product_symbol] = position;
     }
+
+    // Emit updated positions to all clients
+    io.emit("positions", Object.values(positions));
     console.log("Received position update ✅");
   }
 
   if (parsedMessage.type === "orders") {
     if (parsedMessage.action === "snapshot") {
-      orders = parsedMessage.result;
+      parsedMessage.result.forEach((order: Order) => {
+        orders[order.id] = order;
+      });
+    } else if (parsedMessage.action === "delete") {
+      const order = parsedMessage;
+      if (orders[order.id]) {
+        orders[order.id] = {
+          ...orders[order.id],
+          ...order,
+        };
+      }
+    } else {
+      const order = parsedMessage;
+      orders[order.id] = order;
     }
+
+    // Emit updated orders to all clients
+    io.emit("orders", Object.values(orders));
     console.log("Received order update ✅");
   }
 
-  // if (parsedMessage.type === "v2/user_trades") {
-  //   console.log("Received trade update ✅");
-  // }
+  if (parsedMessage.type === "v2/ticker") {
+    prices[parsedMessage.symbol] = parsedMessage;
 
-  // if (parsedMessage.type === "subscriptions") {
-  //   console.log("Subscribed to channels ✅");
-  // }
-
-  // if (parsedMessage.type === "orders") {
-  //   console.log("Received order update ✅");
-  // }
+    // Emit updated orders to all clients
+    io.emit("prices", Object.values(prices));
+    console.log("Received ticker update ✅");
+  }
 });
 
 ws.on("close", () => {

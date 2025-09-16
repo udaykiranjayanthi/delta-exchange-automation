@@ -30,4 +30,13 @@ export interface Trade {
   [key: string]: unknown;
 }
 
-export type ConnectionStatus = 'connected' | 'disconnected';
+export interface Prices {
+  type: string;
+  symbol: string;
+  turnover_symbol: string;
+  spot_price: string;
+  mark_price: string;
+  [key: string]: unknown;
+}
+
+export type ConnectionStatus = "connected" | "disconnected";
