@@ -1,16 +1,34 @@
-# Local
-.DS_Store
-*.local
-*.log*
+# Dependencies
+node_modules/
 
-# Dist
-node_modules
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# TypeScript cache
+*.tsbuildinfo
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build output
 dist/
+build/
 
-# Profile
-.rspack-profile-*/
-
-# IDE
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Env
+.env
