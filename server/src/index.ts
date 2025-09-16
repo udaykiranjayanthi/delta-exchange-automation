@@ -1,8 +1,7 @@
 import WebSocket from "ws";
-import crypto from "crypto";
 import axios from "axios";
 import dotenv from "dotenv";
-import { initializeUI, processWebSocketMessage } from "./renderUI";
+import { createSignature, createSignatureForWebsocket } from "./utils";
 
 dotenv.config();
 
@@ -10,56 +9,21 @@ const apiKey = process.env.API_KEY || "";
 const apiSecret = process.env.API_SECRET || "";
 
 // Initialize UI
-const ui = initializeUI();
-
-function createSignature({
-  method,
-  timestamp,
-  requestPath,
-  queryParams = "",
-  body = "",
-  secretKey,
-}: {
-  method: string;
-  timestamp: string;
-  requestPath: string;
-  queryParams: string;
-  body: string;
-  secretKey: string;
-}): string {
-  // Build prehash string
-  const prehash = method + timestamp + requestPath + queryParams + body;
-
-  // HMAC SHA256 with secretKey
-  return crypto.createHmac("sha256", secretKey).update(prehash).digest("hex");
-}
-
-function createSignatureForWebsocket({
-  method = "GET",
-  timestamp,
-  secretKey,
-}: {
-  method: string;
-  timestamp: string;
-  secretKey: string;
-}): string {
-  // Build prehash string
-  const prehash = method + timestamp + "/live";
-
-  // HMAC SHA256 with secretKey
-  return crypto.createHmac("sha256", secretKey).update(prehash).digest("hex");
-}
 
 function makeRequest({
   method,
   requestPath,
   body,
   queryParams,
+  onSuccess,
+  onError,
 }: {
   method: string;
   requestPath: string;
   body: any;
   queryParams: string;
+  onSuccess: (response: any) => void;
+  onError: (error: any) => void;
 }): void {
   const timestamp = Date.now().toString().slice(0, 10);
 
@@ -79,21 +43,26 @@ function makeRequest({
     },
   })
     .then((response) => {
-      console.log(response.data);
+      onSuccess(response.data);
     })
     .catch((error) => {
-      console.error(error.response.data);
+      onError(error.response.data);
     });
 }
 
-// Create an axios get request
-
-// makeRequest({
-//   method: "GET",
-//   requestPath: "/v2/orders/history",
-//   body: "",
-//   queryParams: "",
-// });
+// Get positions
+makeRequest({
+  method: "GET",
+  requestPath: "/v2/positions",
+  body: "",
+  queryParams: "",
+  onSuccess: (response) => {
+    console.log(response);
+  },
+  onError: (error) => {
+    console.log(error);
+  },
+});
 
 // Connect to server
 const ws = new WebSocket("wss://socket.india.delta.exchange");
@@ -125,7 +94,7 @@ ws.on("message", (message: string) => {
   console.log("Received from server: ", parsedMessage);
 
   // Process message for UI
-  processWebSocketMessage(parsedMessage);
+  // processWebSocketMessage(parsedMessage);
 
   if (
     parsedMessage.type === "success" &&
@@ -159,7 +128,6 @@ ws.on("message", (message: string) => {
 
   if (parsedMessage.type === "subscriptions") {
     console.log("Subscribed to channels ✅");
-    console.log(`UI available at http://localhost:${ui.port}`);
   }
 
   if (parsedMessage.type === "orders") {

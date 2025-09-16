@@ -149,12 +149,38 @@
     </header>
 
     <div class="tabs">
-      <div class="tab active" data-tab="orders">Orders</div>
-      <div class="tab" data-tab="positions">Positions</div>
+      <div class="tab active" data-tab="positions">Positions</div>
+      <div class="tab" data-tab="orders">Orders</div>
       <div class="tab" data-tab="trades">Trades</div>
     </div>
 
-    <div id="orders" class="tab-content active">
+    <div id="positions" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>Positions</h2>
+          <span id="positions-count">0</span>
+        </div>
+        <div class="card-body">
+          <table id="positions-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Size</th>
+                <th>Entry Price</th>
+                <th>Liquidation Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" class="empty-state">No positions yet</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="orders" class="tab-content">
       <div class="card">
         <div class="card-header">
           <h2>Orders</h2>
@@ -184,31 +210,7 @@
       </div>
     </div>
 
-    <div id="positions" class="tab-content">
-      <div class="card">
-        <div class="card-header">
-          <h2>Positions</h2>
-          <span id="positions-count">0</span>
-        </div>
-        <div class="card-body">
-          <table id="positions-table">
-            <thead>
-              <tr>
-                <th>Symbol</th>
-                <th>Size</th>
-                <th>Entry Price</th>
-                <th>Liquidation Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colspan="4" class="empty-state">No positions yet</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    
 
     <div id="trades" class="tab-content">
       <div class="card">

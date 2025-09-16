@@ -3,8 +3,6 @@ import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import path from "path";
 import fs from "fs";
-import ejs from "ejs";
-import { WebSocket } from "ws";
 
 // Types for the WebSocket messages
 interface Order {
