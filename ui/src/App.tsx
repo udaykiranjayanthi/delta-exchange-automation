@@ -1,9 +1,10 @@
-import { MantineProvider, createTheme } from '@mantine/core';
-import '@mantine/core/styles.css';
-import { Dashboard } from './components/Dashboard';
+import { MantineProvider, createTheme } from "@mantine/core";
+import "@mantine/core/styles.css";
+import { Dashboard } from "./components/Dashboard";
 
 const theme = createTheme({
-  primaryColor: 'blue',
+  primaryColor: "blue",
+  fontFamily: "Inter, sans-serif",
 });
 
 const App = () => {

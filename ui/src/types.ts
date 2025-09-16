@@ -30,7 +30,7 @@ export interface Trade {
   [key: string]: unknown;
 }
 
-export interface Prices {
+export interface Price {
   type: string;
   symbol: string;
   price: string;

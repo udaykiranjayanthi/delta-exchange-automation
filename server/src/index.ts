@@ -296,7 +296,7 @@ ws.on("message", (message: string) => {
       prices[parsedMessage.symbol] = parsedMessage;
 
       // Emit updated prices to all clients
-      io.emit("prices", Object.values(prices));
+      io.emit("prices", prices);
       console.log(`Received ticker update for ${parsedMessage.symbol} ✅`);
     }
   }

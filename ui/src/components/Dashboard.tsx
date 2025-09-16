@@ -5,19 +5,14 @@ import { StatusIndicator } from "./StatusIndicator";
 import { OrdersTable } from "./OrdersTable";
 import { PositionsTable } from "./PositionsTable";
 import { TradesTable } from "./TradesTable";
-import type {
-  ConnectionStatus,
-  Order,
-  Position,
-  Prices,
-  Trade,
-} from "../types";
+import type { ConnectionStatus, Order, Position, Price, Trade } from "../types";
 import { PricesTable } from "./PricesTable";
+import { Summary } from "./Summary";
 
 export function Dashboard() {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
-  const [prices, setPrices] = useState<Prices[]>([]);
+  const [prices, setPrices] = useState<Record<string, Price>>({});
   const [orders, setOrders] = useState<Order[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -47,7 +42,7 @@ export function Dashboard() {
       setTrades(data);
     });
 
-    socketInstance.on("prices", (data: Prices[]) => {
+    socketInstance.on("prices", (data: Record<string, Price>) => {
       setPrices(data);
     });
 
@@ -71,13 +66,21 @@ export function Dashboard() {
         </Group>
       </Card>
 
-      <Card shadow="sm" withBorder mb="md">
-        <Flex justify="space-between" mb="md">
-          <Title order={4}>Prices (active positions)</Title>
-          <Text fw={500}>{prices.length}</Text>
-        </Flex>
-        <PricesTable prices={prices} />
-      </Card>
+      <Group justify="stretch" align="stretch">
+        <Card shadow="sm" withBorder mb="md" flex={1}>
+          <Flex justify="space-between" mb="md">
+            <Title order={4}>Prices (active positions)</Title>
+            <Text fw={500}>{Object.keys(prices).length}</Text>
+          </Flex>
+          <PricesTable prices={Object.values(prices)} />
+        </Card>
+        <Card shadow="sm" withBorder mb="md">
+          <Flex justify="space-between" mb="md">
+            <Title order={4}>Summary</Title>
+          </Flex>
+          <Summary prices={prices} positions={positions} />
+        </Card>
+      </Group>
 
       <Tabs defaultValue="positions">
         <Tabs.List>
@@ -113,7 +116,7 @@ export function Dashboard() {
               <Title order={4}>Positions</Title>
               <Text fw={500}>{positions.length}</Text>
             </Flex>
-            <PositionsTable positions={positions} />
+            <PositionsTable positions={positions} prices={prices} />
           </Card>
         </Tabs.Panel>
 

@@ -1,8 +1,8 @@
 import { Table, Text } from "@mantine/core";
-import type { Prices } from "../types";
+import type { Price } from "../types";
 
 interface PositionsTableProps {
-  prices: Prices[];
+  prices: Price[];
 }
 
 export function PricesTable({ prices }: PositionsTableProps) {
