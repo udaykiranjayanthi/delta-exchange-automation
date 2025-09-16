@@ -31,7 +31,8 @@ app.get("/", (req: Request, res: Response) => {
 let positions: Record<string, Position> = {};
 let orders: Record<number, Order> = {};
 let prices: Record<string, any> = {};
-// let trades: Trade[] = [];
+let sellMax: number | null = null;
+let sellMin: number | null = null;
 
 // Track position symbols for ticker subscriptions
 let positionSymbols: string[] = [];
@@ -41,43 +42,24 @@ io.on("connection", (socket) => {
 
   socket.emit("positions", Object.values(positions));
   socket.emit("orders", Object.values(orders));
-  // socket.emit("trades", trades);
+  socket.emit("prices", Object.values(prices));
+  socket.emit("sellMax", sellMax);
+  socket.emit("sellMin", sellMin);
+
+  socket.on("sellMax", (data: number) => {
+    sellMax = data;
+    io.emit("sellMax", sellMax);
+  });
+
+  socket.on("sellMin", (data: number) => {
+    sellMin = data;
+    io.emit("sellMin", sellMin);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected", socket.id);
+  });
 });
-
-function processWebSocketMessage(message: any) {
-  if (!message) return;
-
-  // Process positions
-
-  // Process orders
-  if (message.type === "orders") {
-    const order = message;
-    if (order.action === "create" || order.action === "update") {
-      orders[order.id] = order;
-    } else if (order.action === "delete") {
-      if (orders[order.id]) {
-        orders[order.id] = { ...orders[order.id], ...order };
-      }
-    }
-
-    // Emit updated orders to all clients
-    io.emit("orders", Object.values(orders));
-  }
-
-  // // Process trades
-  // if (message.type === "v2/user_trades") {
-  //   const trade = message;
-  //   trades.unshift(trade); // Add to beginning of array
-
-  //   // Keep only the latest 100 trades
-  //   if (trades.length > 100) {
-  //     trades.pop();
-  //   }
-
-  //   // Emit updated trades to all clients
-  //   io.emit("trades", trades);
-  // }
-}
 
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {

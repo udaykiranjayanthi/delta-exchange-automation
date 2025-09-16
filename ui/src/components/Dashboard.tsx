@@ -16,6 +16,8 @@ export function Dashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [sellMax, setSellMax] = useState<number | null>(null);
+  const [sellMin, setSellMin] = useState<number | null>(null);
 
   useEffect(() => {
     // Connect to the server
@@ -44,6 +46,14 @@ export function Dashboard() {
 
     socketInstance.on("prices", (data: Record<string, Price>) => {
       setPrices(data);
+    });
+
+    socketInstance.on("sellMax", (data: number) => {
+      setSellMax(data);
+    });
+
+    socketInstance.on("sellMin", (data: number) => {
+      setSellMin(data);
     });
 
     // Clean up on unmount
@@ -78,7 +88,12 @@ export function Dashboard() {
           <Flex justify="space-between" mb="md">
             <Title order={4}>Summary</Title>
           </Flex>
-          <Summary prices={prices} positions={positions} />
+          <Summary
+            prices={prices}
+            positions={positions}
+            sellMax={sellMax}
+            sellMin={sellMin}
+          />
         </Card>
       </Group>
 
