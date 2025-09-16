@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
 import { Card, Container, Flex, Group, Tabs, Text, Title } from "@mantine/core";
 import { StatusIndicator } from "./StatusIndicator";
 import { OrdersTable } from "./OrdersTable";
@@ -8,6 +7,7 @@ import { TradesTable } from "./TradesTable";
 import type { ConnectionStatus, Order, Position, Price, Trade } from "../types";
 import { PricesTable } from "./PricesTable";
 import { Summary } from "./Summary";
+import { socket } from "../common/socket";
 
 export function Dashboard() {
   const [connectionStatus, setConnectionStatus] =
@@ -21,44 +21,44 @@ export function Dashboard() {
 
   useEffect(() => {
     // Connect to the server
-    const socketInstance = io("http://localhost:8000");
+    socket.connect();
 
     // Set up event listeners
-    socketInstance.on("connect", () => {
+    socket.on("connect", () => {
       setConnectionStatus("connected");
     });
 
-    socketInstance.on("disconnect", () => {
+    socket.on("disconnect", () => {
       setConnectionStatus("disconnected");
     });
 
-    socketInstance.on("orders", (data: Order[]) => {
+    socket.on("orders", (data: Order[]) => {
       setOrders(data);
     });
 
-    socketInstance.on("positions", (data: Position[]) => {
+    socket.on("positions", (data: Position[]) => {
       setPositions(data);
     });
 
-    socketInstance.on("trades", (data: Trade[]) => {
+    socket.on("trades", (data: Trade[]) => {
       setTrades(data);
     });
 
-    socketInstance.on("prices", (data: Record<string, Price>) => {
+    socket.on("prices", (data: Record<string, Price>) => {
       setPrices(data);
     });
 
-    socketInstance.on("sellMax", (data: number) => {
+    socket.on("sellMax", (data: number) => {
       setSellMax(data);
     });
 
-    socketInstance.on("sellMin", (data: number) => {
+    socket.on("sellMin", (data: number) => {
       setSellMin(data);
     });
 
     // Clean up on unmount
     return () => {
-      socketInstance.disconnect();
+      socket.disconnect();
     };
   }, []);
 
