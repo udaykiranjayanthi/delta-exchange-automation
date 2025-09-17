@@ -17,6 +17,9 @@ export interface Position {
   size: number;
   entry_price: string;
   liquidation_price: string | null;
+  product: {
+    contract_value: string;
+  };
   [key: string]: unknown;
 }
 

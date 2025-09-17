@@ -53,7 +53,10 @@ export function canSell({
   let totalPositionValue = 0;
   for (const position of positions) {
     const price = prices[`MARK:${position.product_symbol}`];
-    totalPositionValue += position.size * parseFloat(price.price);
+    totalPositionValue +=
+      position.size *
+      parseFloat(position.product.contract_value) *
+      parseFloat(price.price);
   }
 
   return totalPositionValue <= lowerLimit || totalPositionValue >= upperLimit;

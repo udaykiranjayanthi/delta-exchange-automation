@@ -21,6 +21,9 @@ export interface Position {
   liquidation_price: string | null;
   mark_price?: string;
   unrealized_pnl?: string;
+  product: {
+    contract_value: string;
+  };
   [key: string]: unknown;
 }
 

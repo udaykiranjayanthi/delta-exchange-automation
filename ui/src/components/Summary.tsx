@@ -41,23 +41,43 @@ export function Summary({
   }, [upperLimit, lowerLimit]);
 
   const invested = Object.values(positions).reduce(
-    (acc, position) => acc + parseFloat(position.entry_price) * position.size,
+    (acc, position) =>
+      acc +
+      position.size *
+        parseFloat(position.product.contract_value) *
+        parseFloat(position.entry_price),
     0
   );
+
   const currentValue = Object.values(positions).reduce((acc, position) => {
     const markPrice = parseFloat(
       prices[`MARK:${position.product_symbol}`]?.price
     );
-    return acc + markPrice * position.size;
+    return (
+      acc +
+      position.size * parseFloat(position.product.contract_value) * markPrice
+    );
   }, 0);
+
   const returns = currentValue - invested;
 
+  const denominator = Object.values(positions).reduce(
+    (acc, position) =>
+      acc +
+      Math.abs(position.size) *
+        parseFloat(position.product.contract_value) *
+        parseFloat(position.entry_price),
+    0
+  );
+
+  const returnsPercentage = (returns / denominator) * 100;
+
   const upperLimitPercentage = upperLimit
-    ? (((upperLimit - invested) / invested) * 100).toFixed(2)
+    ? (((upperLimit - invested) / denominator) * 100).toFixed(2)
     : "N/A";
 
   const lowerLimitPercentage = lowerLimit
-    ? (((lowerLimit - invested) / invested) * 100).toFixed(2)
+    ? (((lowerLimit - invested) / denominator) * 100).toFixed(2)
     : "N/A";
 
   const handleUpperLimitSubmit = () => {
@@ -85,17 +105,13 @@ export function Summary({
         <Text mt="xs">{currentValue.toFixed(5)}</Text>
       </Card>
 
-      <Card
-        withBorder
-        w="9rem"
-        onClick={() => setShowPercentage(!showPercentage)}
-      >
+      <Card withBorder onClick={() => setShowPercentage(!showPercentage)}>
         <Text fw={600} c="dimmed">
           Returns {showPercentage && "(%)"}
         </Text>
         <Text c={returns > 0 ? "green" : "red"} mt="xs">
           {showPercentage
-            ? ((returns / invested) * 100).toFixed(2) + "%"
+            ? returnsPercentage.toFixed(2) + "%"
             : returns.toFixed(5)}
         </Text>
       </Card>
