@@ -16,7 +16,7 @@ export function PositionsTable({ positions, prices }: PositionsTableProps) {
   }
 
   return (
-    <Table striped highlightOnHover>
+    <Table striped withTableBorder highlightOnHover>
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Symbol</Table.Th>

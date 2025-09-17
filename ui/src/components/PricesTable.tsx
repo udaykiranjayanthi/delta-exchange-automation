@@ -15,20 +15,15 @@ export function PricesTable({ prices }: PositionsTableProps) {
   }
 
   return (
-    <Table striped highlightOnHover>
-      <Table.Thead>
-        <Table.Tr>
-          {prices.map((price) => (
-            <Table.Th key={price.symbol}>{price.symbol.split(":")[1]}</Table.Th>
-          ))}
-        </Table.Tr>
-      </Table.Thead>
+    <Table highlightOnHover variant="vertical" withTableBorder>
       <Table.Tbody>
-        <Table.Tr>
-          {prices.map((price) => (
+        {prices.map((price) => (
+          <Table.Tr>
+            <Table.Th key={price.symbol}>{price.symbol.split(":")[1]}</Table.Th>
+
             <Table.Td key={price.symbol}>{price.price}</Table.Td>
-          ))}
-        </Table.Tr>
+          </Table.Tr>
+        ))}
       </Table.Tbody>
     </Table>
   );

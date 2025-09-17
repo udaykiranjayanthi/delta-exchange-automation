@@ -1,5 +1,5 @@
-import { Badge, Table, Text } from '@mantine/core';
-import type { Order } from '../types';
+import { Badge, Table, Text } from "@mantine/core";
+import type { Order } from "../types";
 
 interface OrdersTableProps {
   orders: Order[];
@@ -15,7 +15,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
   }
 
   return (
-    <Table striped highlightOnHover>
+    <Table withTableBorder striped highlightOnHover>
       <Table.Thead>
         <Table.Tr>
           <Table.Th>ID</Table.Th>
@@ -30,24 +30,27 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       </Table.Thead>
       <Table.Tbody>
         {orders.map((order) => {
-          const statusColor = 
-            order.state === 'closed' ? 'green' :
-            order.state === 'cancelled' ? 'red' : 'blue';
-          
+          const statusColor =
+            order.state === "closed"
+              ? "green"
+              : order.state === "cancelled"
+              ? "red"
+              : "blue";
+
           const createdAt = new Date(order.created_at).toLocaleString();
-          const price = order.average_fill_price || order.limit_price || '-';
-          
+          const price = order.average_fill_price || order.limit_price || "-";
+
           return (
             <Table.Tr key={order.id}>
               <Table.Td>{order.id}</Table.Td>
               <Table.Td>{order.product_symbol}</Table.Td>
               <Table.Td>
-                <Text c={order.side === 'buy' ? 'green' : 'red'} fw={500}>
+                <Text c={order.side === "buy" ? "green" : "red"} fw={500}>
                   {order.side.toUpperCase()}
                 </Text>
               </Table.Td>
               <Table.Td>{order.size}</Table.Td>
-              <Table.Td>{order.order_type.replace('_', ' ')}</Table.Td>
+              <Table.Td>{order.order_type.replace("_", " ")}</Table.Td>
               <Table.Td>{price}</Table.Td>
               <Table.Td>
                 <Badge color={statusColor} variant="light">
