@@ -74,15 +74,15 @@ const apiSecret = process.env.API_SECRET || "";
 function makeRequest({
   method,
   requestPath,
-  body,
-  queryParams,
+  body = "",
+  queryParams = "",
   onSuccess,
   onError,
 }: {
   method: string;
   requestPath: string;
-  body: any;
-  queryParams: string;
+  body?: any;
+  queryParams?: string;
   onSuccess: (response: any) => void;
   onError: (error: any) => void;
 }): void {
@@ -98,10 +98,11 @@ function makeRequest({
         requestPath,
         queryParams,
         secretKey: apiSecret,
-        body: "",
+        body: JSON.stringify(body),
       }),
       timestamp: timestamp,
     },
+    data: body,
   })
     .then((response) => {
       onSuccess(response.data);
@@ -111,19 +112,27 @@ function makeRequest({
     });
 }
 
-// Get positions
-makeRequest({
-  method: "GET",
-  requestPath: "/v2/positions",
-  body: "",
-  queryParams: "",
-  onSuccess: (response) => {
-    console.log(response);
-  },
-  onError: (error) => {
-    console.log(error);
-  },
-});
+const closeAllPositions = () => {
+  const user_id = Object.values(positions)[0]?.user_id;
+  if (!user_id) return;
+
+  console.log("Closing all positions for user", user_id);
+  makeRequest({
+    method: "POST",
+    requestPath: "/v2/positions/close_all",
+    body: {
+      close_all_portfolio: true,
+      close_all_isolated: true,
+      user_id,
+    },
+    onSuccess: (response) => {
+      console.log("Positions closed ✅", response);
+    },
+    onError: (error) => {
+      console.log("Failed to close positions", error);
+    },
+  });
+};
 
 // Connect to server
 const ws = new WebSocket("wss://socket.india.delta.exchange");
@@ -289,6 +298,10 @@ ws.on("message", (message: string) => {
         upperLimit,
         lowerLimit,
       });
+      if (canSellResult) {
+        console.log("Attempting to close all positions");
+        closeAllPositions();
+      }
       console.log("canSell", canSellResult);
     }
   }

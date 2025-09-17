@@ -52,6 +52,14 @@ export function Summary({
   }, 0);
   const returns = currentValue - invested;
 
+  const upperLimitPercentage = upperLimit
+    ? (((upperLimit - invested) / invested) * 100).toFixed(2)
+    : "N/A";
+
+  const lowerLimitPercentage = lowerLimit
+    ? (((lowerLimit - invested) / invested) * 100).toFixed(2)
+    : "N/A";
+
   const handleUpperLimitSubmit = () => {
     socket.emit("upperLimit", parseFloat(upperLimitValue));
     setIsEditingUpperLimit(false);
@@ -117,7 +125,9 @@ export function Summary({
             />
           </Flex>
         ) : (
-          <Text mt="xs">{upperLimit || "N/A"}</Text>
+          <Text mt="xs">
+            {upperLimit ? `${upperLimit} (${upperLimitPercentage}%)` : "N/A"}
+          </Text>
         )}
       </Card>
 
@@ -146,7 +156,9 @@ export function Summary({
             />
           </Flex>
         ) : (
-          <Text mt="xs">{lowerLimit || "N/A"}</Text>
+          <Text mt="xs">
+            {lowerLimit ? `${lowerLimit} (${lowerLimitPercentage}%)` : "N/A"}
+          </Text>
         )}
       </Card>
     </SimpleGrid>
