@@ -369,3 +369,27 @@ export const markPrices = {
     vega: "20.62363525",
   },
 };
+
+export const position = {
+  action: "create",
+  adl_level: null,
+  auto_topup: false,
+  bankruptcy_price: "3.01203",
+  commission: "0.001813365",
+  entry_price: "3.0735",
+  liquidation_price: "3.0273975",
+  margin: "0.06147",
+  margin_mode: "isolated",
+  product_id: 14969,
+  product_symbol: "XRPUSD",
+  realized_cashflow: "0",
+  realized_funding: "0",
+  realized_pnl: "0",
+  reason: null,
+  size: 1,
+  symbol: "XRPUSD",
+  timestamp: 1758180064147546,
+  type: "positions",
+  under_liquidation: false,
+  user_id: 65520697,
+};

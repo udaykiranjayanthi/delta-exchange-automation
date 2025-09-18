@@ -18,10 +18,10 @@ export function PricesTable({ prices }: PositionsTableProps) {
     <Table highlightOnHover variant="vertical" withTableBorder>
       <Table.Tbody>
         {prices.map((price) => (
-          <Table.Tr>
-            <Table.Th key={price.symbol}>{price.symbol.split(":")[1]}</Table.Th>
+          <Table.Tr key={price.symbol}>
+            <Table.Th>{price.symbol.split(":")[1]}</Table.Th>
 
-            <Table.Td key={price.symbol}>{price.price}</Table.Td>
+            <Table.Td>{price.price}</Table.Td>
           </Table.Tr>
         ))}
       </Table.Tbody>
