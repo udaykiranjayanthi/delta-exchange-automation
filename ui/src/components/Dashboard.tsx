@@ -64,14 +64,14 @@ export function Dashboard() {
       </Card>
 
       <Group justify="stretch" align="stretch">
-        <Card shadow="sm" withBorder mb="md" flex={1}>
+        <Card shadow="sm" withBorder mb="md" w="25rem">
           <Flex justify="space-between" mb="md">
             <Title order={4}>Prices (active positions)</Title>
             <Text fw={500}>{Object.keys(prices).length}</Text>
           </Flex>
           <PricesTable prices={Object.values(prices)} />
         </Card>
-        <Card shadow="sm" withBorder mb="md">
+        <Card shadow="sm" withBorder mb="md" flex={1}>
           <Flex justify="space-between" mb="md">
             <Title order={4}>Summary</Title>
           </Flex>

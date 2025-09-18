@@ -159,11 +159,11 @@ ws.on("open", () => {
 
 ws.on("message", (message: string) => {
   const parsedMessage = JSON.parse(message);
-  console.log(
-    "Received from server: ",
-    parsedMessage.type,
-    parsedMessage.action
-  );
+  console.log("Received from server: ", parsedMessage.type);
+
+  if (parsedMessage.type === "error") {
+    console.log("Error: ", parsedMessage.message);
+  }
 
   if (
     parsedMessage.type === "success" &&

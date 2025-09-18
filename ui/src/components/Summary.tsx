@@ -5,9 +5,12 @@ import {
   TextInput,
   Flex,
   SimpleGrid,
+  Box,
+  Stack,
 } from "@mantine/core";
-import { IconPencil } from "@tabler/icons-react";
+import { IconPencil, IconChartLine, IconCards } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
+import { PriceGraph } from "./PriceGraph";
 import type { Position, Price } from "../types";
 import { socket } from "../common/socket";
 
@@ -18,12 +21,20 @@ interface SummaryProps {
   lowerLimit: number | null;
 }
 
+interface GraphData {
+  currentPrice: number;
+  timestamp: number;
+}
+
 export function Summary({
   prices,
   positions,
   upperLimit,
   lowerLimit,
 }: SummaryProps) {
+  const [showGraph, setShowGraph] = useState(true);
+  const [graphData, setGraphData] = useState<GraphData[]>([]);
+
   const [isEditingUpperLimit, setIsEditingUpperLimit] = useState(false);
   const [isEditingLowerLimit, setIsEditingLowerLimit] = useState(false);
   const [upperLimitValue, setupperLimitValue] = useState<string>(
@@ -59,6 +70,24 @@ export function Summary({
     );
   }, 0);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (positions.length === 0) {
+        setGraphData([]);
+        return;
+      }
+
+      if (!isNaN(currentValue)) {
+        setGraphData((prev) => [
+          ...prev,
+          { currentPrice: currentValue, timestamp: Date.now() },
+        ]);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [positions, currentValue]);
+
   const returns = currentValue - invested;
 
   const denominator = Object.values(positions).reduce(
@@ -91,92 +120,118 @@ export function Summary({
   };
 
   return (
-    <SimpleGrid cols={5}>
-      <Card withBorder>
-        <Text fw={600} c="dimmed">
-          Invested
-        </Text>
-        <Text mt="xs">{invested.toFixed(5)}</Text>
-      </Card>
-      <Card withBorder>
-        <Text fw={600} c="dimmed">
-          Current
-        </Text>
-        <Text mt="xs">{currentValue.toFixed(5)}</Text>
-      </Card>
-
-      <Card withBorder onClick={() => setShowPercentage(!showPercentage)}>
-        <Text fw={600} c="dimmed">
-          Returns {showPercentage && "(%)"}
-        </Text>
-        <Text c={returns > 0 ? "green" : "red"} mt="xs">
-          {showPercentage
-            ? returnsPercentage.toFixed(2) + "%"
-            : returns.toFixed(5)}
-        </Text>
-      </Card>
-
-      <Card withBorder>
-        <Flex align="center" gap="xs">
-          <Text fw={600} c="dimmed">
-            Upper Limit
-          </Text>
-          <ActionIcon
-            size="xs"
-            variant="subtle"
-            onClick={() => setIsEditingUpperLimit(!isEditingUpperLimit)}
-          >
-            <IconPencil size={18} />
-          </ActionIcon>
-        </Flex>
-        {isEditingUpperLimit ? (
-          <Flex align="center">
-            <TextInput
-              size="sm"
-              w="6rem"
-              value={upperLimitValue}
-              onChange={(e) => setupperLimitValue(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleUpperLimitSubmit()}
-              placeholder="Max"
-            />
-          </Flex>
-        ) : (
-          <Text mt="xs">
-            {upperLimit ? `${upperLimit} (${upperLimitPercentage}%)` : "N/A"}
-          </Text>
-        )}
-      </Card>
-
-      <Card withBorder>
-        <Flex align="center" gap="xs">
-          <Text fw={600} c="dimmed">
-            Lower Limit
-          </Text>
-          <ActionIcon
-            size="xs"
-            variant="subtle"
-            onClick={() => setIsEditingLowerLimit(!isEditingLowerLimit)}
-          >
-            <IconPencil size={18} />
-          </ActionIcon>
-        </Flex>
-        {isEditingLowerLimit ? (
-          <Flex align="center">
-            <TextInput
-              size="sm"
-              w="6rem"
-              value={lowerLimitValue}
-              onChange={(e) => setLowerLimitValue(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLowerLimitSubmit()}
-              placeholder="Min"
-            />
-          </Flex>
-        ) : (
-          <Text mt="xs">
-            {lowerLimit ? `${lowerLimit} (${lowerLimitPercentage}%)` : "N/A"}
-          </Text>
-        )}
-      </Card>
-    </SimpleGrid>
+    <Stack>
+      {showGraph ? (
+        <PriceGraph
+          graphData={graphData}
+          investedValue={invested}
+          upperLimit={upperLimit}
+          lowerLimit={lowerLimit}
+        />
+      ) : (
+        <SimpleGrid cols={5}>
+          <Card withBorder>
+            <Text fw={600} c="dimmed">
+              Invested
+            </Text>
+            <Text mt="xs">{invested.toFixed(5)}</Text>
+          </Card>
+          <Card withBorder>
+            <Text fw={600} c="dimmed">
+              Current
+            </Text>
+            <Text mt="xs">{currentValue.toFixed(5)}</Text>
+          </Card>
+          <Card withBorder onClick={() => setShowPercentage(!showPercentage)}>
+            <Text fw={600} c="dimmed">
+              Returns {showPercentage && "(%)"}
+            </Text>
+            <Text c={returns > 0 ? "green" : "red"} mt="xs">
+              {showPercentage
+                ? returnsPercentage.toFixed(2) + "%"
+                : returns.toFixed(5)}
+            </Text>
+          </Card>
+          <Card withBorder>
+            <Flex align="center" gap="xs">
+              <Text fw={600} c="dimmed">
+                Upper Limit
+              </Text>
+              <ActionIcon
+                size="xs"
+                variant="subtle"
+                onClick={() => setIsEditingUpperLimit(!isEditingUpperLimit)}
+              >
+                <IconPencil size={18} />
+              </ActionIcon>
+            </Flex>
+            {isEditingUpperLimit ? (
+              <Flex align="center">
+                <TextInput
+                  size="sm"
+                  w="6rem"
+                  value={upperLimitValue}
+                  onChange={(e) => setupperLimitValue(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && handleUpperLimitSubmit()
+                  }
+                  placeholder="Max"
+                />
+              </Flex>
+            ) : (
+              <Text mt="xs">
+                {upperLimit
+                  ? `${upperLimit} (${upperLimitPercentage}%)`
+                  : "N/A"}
+              </Text>
+            )}
+          </Card>
+          <Card withBorder>
+            <Flex align="center" gap="xs">
+              <Text fw={600} c="dimmed">
+                Lower Limit
+              </Text>
+              <ActionIcon
+                size="xs"
+                variant="subtle"
+                onClick={() => setIsEditingLowerLimit(!isEditingLowerLimit)}
+              >
+                <IconPencil size={18} />
+              </ActionIcon>
+            </Flex>
+            {isEditingLowerLimit ? (
+              <Flex align="center">
+                <TextInput
+                  size="sm"
+                  w="6rem"
+                  value={lowerLimitValue}
+                  onChange={(e) => setLowerLimitValue(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && handleLowerLimitSubmit()
+                  }
+                  placeholder="Min"
+                />
+              </Flex>
+            ) : (
+              <Text mt="xs">
+                {lowerLimit
+                  ? `${lowerLimit} (${lowerLimitPercentage}%)`
+                  : "N/A"}
+              </Text>
+            )}
+          </Card>
+        </SimpleGrid>
+      )}
+      <Box ta="right">
+        <ActionIcon
+          onClick={() => setShowGraph(!showGraph)}
+          variant="subtle"
+          size="lg"
+          color="blue"
+        >
+          {showGraph ? <IconCards size={20} /> : <IconChartLine size={20} />}
+        </ActionIcon>
+      </Box>
+    </Stack>
   );
 }
