@@ -32,7 +32,7 @@ export function Summary({
   upperLimit,
   lowerLimit,
 }: SummaryProps) {
-  const [showGraph, setShowGraph] = useState(true);
+  const [showGraph, setShowGraph] = useState(false);
   const [graphData, setGraphData] = useState<GraphData[]>([]);
 
   const [isEditingUpperLimit, setIsEditingUpperLimit] = useState(false);

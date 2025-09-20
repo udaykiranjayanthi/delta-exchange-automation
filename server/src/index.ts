@@ -5,11 +5,15 @@ import { canSell, createSignature, createSignatureForWebsocket } from "./utils";
 import express, { Application, Request, Response } from "express";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { Order, Position, Trade } from "./types";
+import { Position } from "./types";
 import cors from "cors";
 
 dotenv.config();
 
+const apiKey = process.env.API_KEY || "";
+const apiSecret = process.env.API_SECRET || "";
+
+// Create application server
 const app: Application = express();
 app.use(express.json());
 app.use(cors({ origin: "http://localhost:3000" }));
@@ -28,6 +32,7 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Socket.IO Server is running 🚀");
 });
 
+// Initialize state
 let positions: Record<string, Position> = {};
 let prices: Record<string, any> = {};
 let upperLimit: number | null = null;
@@ -36,6 +41,7 @@ let lowerLimit: number | null = null;
 // Track position symbols for ticker subscriptions
 let positionSymbols: string[] = [];
 
+// Handle client UI connections with socket io
 io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
 
@@ -59,16 +65,13 @@ io.on("connection", (socket) => {
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
 
-const apiKey = process.env.API_KEY || "";
-const apiSecret = process.env.API_SECRET || "";
-
-// Initialize UI
-
+// Make request to delta exchange
 function makeRequest({
   method,
   requestPath,
@@ -110,6 +113,7 @@ function makeRequest({
     });
 }
 
+// Close all positions
 const closeAllPositions = () => {
   const user_id = Object.values(positions)[0]?.user_id;
   if (!user_id) return;
@@ -132,126 +136,58 @@ const closeAllPositions = () => {
   });
 };
 
-// Connect to server
-const ws = new WebSocket("wss://socket.india.delta.exchange");
+// Create delta websocket connection
+function createDeltaWebsocketConnection() {
+  // Connect to server
+  console.log("Creating websocket connection to server...");
+  const ws = new WebSocket("wss://socket.india.delta.exchange");
 
-ws.on("open", () => {
-  console.log("Connected to server ✅");
+  let connectionStatus: {
+    isAlive: boolean;
+    pingInterval: NodeJS.Timeout | undefined;
+  } = {
+    isAlive: false,
+    pingInterval: undefined,
+  };
 
-  console.log("Authenticating...");
-  const timestamp = Date.now().toString().slice(0, 10);
+  ws.on("open", () => {
+    console.log("Connected to server ✅");
 
-  ws.send(
-    JSON.stringify({
-      type: "auth",
-      payload: {
-        "api-key": apiKey,
-        signature: createSignatureForWebsocket({
-          method: "GET",
-          timestamp,
-          secretKey: apiSecret,
-        }),
-        timestamp: timestamp,
-      },
-    })
-  );
-});
+    console.log("Authenticating...");
+    const timestamp = Date.now().toString().slice(0, 10);
 
-ws.on("message", (message: string) => {
-  const parsedMessage = JSON.parse(message);
-  console.log("Received from server: ", parsedMessage.type);
-
-  if (parsedMessage.type === "error") {
-    console.log("Error: ", parsedMessage.message);
-  }
-
-  if (
-    parsedMessage.type === "success" &&
-    parsedMessage.message === "Authenticated"
-  ) {
-    console.log("Authenticated ✅");
-    console.log("Subscribing to channels...");
-
-    // Subscribe to channels
     ws.send(
       JSON.stringify({
-        type: "subscribe",
+        type: "auth",
         payload: {
-          channels: [
-            {
-              name: "positions",
-              symbols: ["all"],
-            },
-            // Initially we don't subscribe to any prices
-            // Will subscribe based on positions
-          ],
+          "api-key": apiKey,
+          signature: createSignatureForWebsocket({
+            method: "GET",
+            timestamp,
+            secretKey: apiSecret,
+          }),
+          timestamp: timestamp,
         },
       })
     );
-  }
+  });
 
-  if (parsedMessage.type === "positions") {
-    if (parsedMessage.action === "snapshot") {
-      console.log("Received position snapshot ✅");
-      positions = {};
-      parsedMessage.result.forEach((position: Position) => {
-        positions[position.product_symbol] = position;
-      });
-      // Emit updated positions to all clients
-      io.emit("positions", Object.values(positions));
+  ws.on("message", (message: string) => {
+    const parsedMessage = JSON.parse(message);
+    console.log("Received from server: ", parsedMessage.type);
 
-      // Update position symbols list with unique symbols
-      positionSymbols = Array.from(
-        new Set(
-          Object.values(positions).map((pos) => `MARK:${pos.product_symbol}`)
-        )
-      );
+    if (parsedMessage.type === "error") {
+      console.log("Error: ", parsedMessage.message);
+    }
 
-      console.log("Resubscribing to mark prices...");
+    if (
+      parsedMessage.type === "success" &&
+      parsedMessage.message === "Authenticated"
+    ) {
+      console.log("Authenticated ✅");
+      console.log("Subscribing to channels...");
 
-      ws.send(
-        JSON.stringify({
-          type: "unsubscribe",
-          payload: {
-            channels: [
-              {
-                name: "mark_price",
-              },
-            ],
-          },
-        })
-      );
-
-      ws.send(
-        JSON.stringify({
-          type: "subscribe",
-          payload: {
-            channels: [
-              {
-                name: "mark_price",
-                symbols: positionSymbols,
-              },
-            ],
-          },
-        })
-      );
-    } else {
-      console.log("Received position update ✅");
-      console.log("Resubscribing to positions to get snapshot...");
-      ws.send(
-        JSON.stringify({
-          type: "unsubscribe",
-          payload: {
-            channels: [
-              {
-                name: "positions",
-                symbols: ["all"],
-              },
-            ],
-          },
-        })
-      );
-
+      // Subscribe to channels
       ws.send(
         JSON.stringify({
           type: "subscribe",
@@ -261,41 +197,149 @@ ws.on("message", (message: string) => {
                 name: "positions",
                 symbols: ["all"],
               },
+              // Initially we don't subscribe to any prices
+              // Will subscribe based on positions
             ],
           },
         })
       );
     }
-  }
 
-  if (parsedMessage.type === "mark_price") {
-    // Only store tickers for symbols we have positions in
-    if (positionSymbols.includes(parsedMessage.symbol)) {
-      prices[parsedMessage.symbol] = parsedMessage;
+    if (parsedMessage.type === "positions") {
+      if (parsedMessage.action === "snapshot") {
+        console.log("Received position snapshot ✅");
+        positions = {};
+        parsedMessage.result.forEach((position: Position) => {
+          positions[position.product_symbol] = position;
+        });
+        // Emit updated positions to all clients
+        io.emit("positions", Object.values(positions));
 
-      // Emit updated prices to all clients
-      io.emit("prices", prices);
-      console.log(`Received ticker update for ${parsedMessage.symbol} ✅`);
-    }
+        // Update position symbols list with unique symbols
+        positionSymbols = Array.from(
+          new Set(
+            Object.values(positions).map((pos) => `MARK:${pos.product_symbol}`)
+          )
+        );
 
-    if (upperLimit && lowerLimit) {
-      const canSellResult = canSell({
-        positions: Object.values(positions),
-        prices,
-        upperLimit,
-        lowerLimit,
-      });
-      if (canSellResult) {
-        console.log("Attempting to close all positions");
-        closeAllPositions();
+        console.log("Resubscribing to mark prices...");
+
+        ws.send(
+          JSON.stringify({
+            type: "unsubscribe",
+            payload: {
+              channels: [
+                {
+                  name: "mark_price",
+                },
+              ],
+            },
+          })
+        );
+
+        ws.send(
+          JSON.stringify({
+            type: "subscribe",
+            payload: {
+              channels: [
+                {
+                  name: "mark_price",
+                  symbols: positionSymbols,
+                },
+              ],
+            },
+          })
+        );
+      } else {
+        console.log("Received position update ✅");
+        console.log("Resubscribing to positions to get snapshot...");
+        ws.send(
+          JSON.stringify({
+            type: "unsubscribe",
+            payload: {
+              channels: [
+                {
+                  name: "positions",
+                  symbols: ["all"],
+                },
+              ],
+            },
+          })
+        );
+
+        ws.send(
+          JSON.stringify({
+            type: "subscribe",
+            payload: {
+              channels: [
+                {
+                  name: "positions",
+                  symbols: ["all"],
+                },
+              ],
+            },
+          })
+        );
       }
-      console.log("canSell", canSellResult);
     }
-  }
-});
 
-ws.on("close", () => {
-  console.log("Disconnected from server ❌");
-});
+    if (parsedMessage.type === "mark_price") {
+      // Only store tickers for symbols we have positions in
+      if (positionSymbols.includes(parsedMessage.symbol)) {
+        prices[parsedMessage.symbol] = parsedMessage;
 
-// Socket connection for UI
+        // Emit updated prices to all clients
+        io.emit("prices", prices);
+        console.log(`Received ticker update for ${parsedMessage.symbol} ✅`);
+      }
+
+      if (upperLimit && lowerLimit) {
+        const canSellResult = canSell({
+          positions: Object.values(positions),
+          prices,
+          upperLimit,
+          lowerLimit,
+        });
+        if (canSellResult) {
+          console.log("Attempting to close all positions");
+          closeAllPositions();
+        }
+        console.log("canSell", canSellResult);
+      }
+    }
+  });
+
+  ws.on("close", () => {
+    console.log("Disconnected from server ❌");
+    clearInterval(connectionStatus.pingInterval);
+
+    console.log("Reconnecting to server...");
+    createDeltaWebsocketConnection();
+  });
+
+  ws.on("error", (err) => {
+    console.error("⚠️ WebSocket error:", err.message);
+    ws.close(); // trigger reconnect
+  });
+
+  ws.on("pong", () => {
+    console.log("Received pong from server ✅");
+    connectionStatus.isAlive = true;
+  });
+
+  // Start heartbeat interval
+  connectionStatus.pingInterval = setInterval(() => {
+    console.log("Sending ping to server...");
+    connectionStatus.isAlive = false;
+    ws.ping(); // send ping
+
+    setTimeout(() => {
+      if (!connectionStatus.isAlive) {
+        console.log("🔌 No heartbeat, terminating connection");
+        ws.terminate(); // force close → will trigger reconnect
+      }
+    }, 5000); // check if pong is received within 5s after ping
+  }, 30000); // send ping every 30s
+}
+
+createDeltaWebsocketConnection();
