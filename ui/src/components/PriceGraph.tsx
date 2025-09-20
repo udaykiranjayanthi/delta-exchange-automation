@@ -26,7 +26,7 @@ export function PriceGraph({
     currentValue: item.currentPrice,
   }));
 
-  // Only keep the last 60 data points (1 minute of data)
+  // Only keep the last 60 data points (2 minute of data)
   const displayData = formattedData.slice(-60);
 
   // Calculate min and max values to ensure reference lines are visible
@@ -79,8 +79,9 @@ export function PriceGraph({
             withDots={false}
             legendProps={{ verticalAlign: "bottom" }}
             yAxisProps={{
-              width: 100,
+              width: 60,
               domain: [minValue, maxValue],
+              tickFormatter: (value) => value.toFixed(5),
             }}
             tooltipProps={{
               content: ({ label, payload }) => {

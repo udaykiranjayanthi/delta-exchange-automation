@@ -71,6 +71,7 @@ export function Summary({
   }, 0);
 
   useEffect(() => {
+    // Update graph data every 2 seconds
     const interval = setInterval(() => {
       if (positions.length === 0) {
         setGraphData([]);
@@ -83,7 +84,7 @@ export function Summary({
           { currentPrice: currentValue, timestamp: Date.now() },
         ]);
       }
-    }, 1000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [positions, currentValue]);
