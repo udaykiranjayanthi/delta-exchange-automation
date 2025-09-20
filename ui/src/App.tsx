@@ -9,7 +9,7 @@ const theme = createTheme({
 
 const App = () => {
   return (
-    <MantineProvider theme={theme}>
+    <MantineProvider theme={theme} defaultColorScheme="dark">
       <Dashboard />
     </MantineProvider>
   );

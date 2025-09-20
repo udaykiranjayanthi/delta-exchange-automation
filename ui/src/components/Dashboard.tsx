@@ -1,14 +1,25 @@
 import { useEffect, useState } from "react";
-import { Card, Container, Flex, Group, Tabs, Text, Title } from "@mantine/core";
+import {
+  Card,
+  Container,
+  Flex,
+  Group,
+  Switch,
+  Tabs,
+  Text,
+  Title,
+  useMantineColorScheme,
+} from "@mantine/core";
 import { StatusIndicator } from "./StatusIndicator";
 import { PositionsTable } from "./PositionsTable";
 import type { ConnectionStatus, Position, Price } from "../types";
 import { PricesTable } from "./PricesTable";
 import { Summary } from "./Summary";
 import { socket } from "../common/socket";
-// import { positions as positionsData, markPrices } from "../../data";
+import { IconMoonStars, IconSun } from "@tabler/icons-react";
 
 export function Dashboard() {
+  const { setColorScheme, colorScheme } = useMantineColorScheme();
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("disconnected");
   const [prices, setPrices] = useState<Record<string, Price>>({});
@@ -59,7 +70,32 @@ export function Dashboard() {
       <Card shadow="sm" withBorder mb="md">
         <Group justify="space-between">
           <Title order={3}>Delta Exchange Dashboard</Title>
-          <StatusIndicator status={connectionStatus} />
+
+          <Group gap="md">
+            <StatusIndicator status={connectionStatus} />
+            <Switch
+              size="md"
+              color="dark.4"
+              checked={colorScheme === "dark"}
+              onChange={(e) =>
+                setColorScheme(e.currentTarget.checked ? "dark" : "light")
+              }
+              onLabel={
+                <IconSun
+                  size={16}
+                  stroke={2.5}
+                  color="var(--mantine-color-yellow-4)"
+                />
+              }
+              offLabel={
+                <IconMoonStars
+                  size={16}
+                  stroke={2.5}
+                  color="var(--mantine-color-blue-6)"
+                />
+              }
+            />
+          </Group>
         </Group>
       </Card>
 

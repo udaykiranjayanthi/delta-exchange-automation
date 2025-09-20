@@ -9,7 +9,7 @@ import {
   Stack,
 } from "@mantine/core";
 import { IconPencil, IconChartLine, IconCards } from "@tabler/icons-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PriceGraph } from "./PriceGraph";
 import type { Position, Price } from "../types";
 import { socket } from "../common/socket";
@@ -44,6 +44,7 @@ export function Summary({
     lowerLimit?.toString() || ""
   );
   const [showPercentage, setShowPercentage] = useState(false);
+  const currentValueRef = useRef<number | null>(null);
 
   // Update local state when props change
   useEffect(() => {
@@ -70,6 +71,8 @@ export function Summary({
     );
   }, 0);
 
+  currentValueRef.current = currentValue;
+
   useEffect(() => {
     // Update graph data every 2 seconds
     const interval = setInterval(() => {
@@ -78,16 +81,17 @@ export function Summary({
         return;
       }
 
-      if (!isNaN(currentValue)) {
+      const value = currentValueRef.current;
+      if (value !== null && !isNaN(value)) {
         setGraphData((prev) => [
           ...prev,
-          { currentPrice: currentValue, timestamp: Date.now() },
+          { currentPrice: value, timestamp: Date.now() },
         ]);
       }
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [positions, currentValue]);
+  }, [positions]);
 
   const returns = currentValue - invested;
 

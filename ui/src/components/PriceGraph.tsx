@@ -1,4 +1,4 @@
-import { Card, Box, Text } from "@mantine/core";
+import { Card, Box, Text, useMantineTheme } from "@mantine/core";
 import { LineChart } from "@mantine/charts";
 import "@mantine/charts/styles.css";
 
@@ -20,6 +20,8 @@ export function PriceGraph({
   upperLimit,
   lowerLimit,
 }: PriceGraphProps) {
+  const theme = useMantineTheme();
+
   // Format data for the chart
   const formattedData = graphData.map((item) => ({
     date: new Date(item.timestamp).toLocaleTimeString(),
@@ -44,13 +46,17 @@ export function PriceGraph({
 
   // Create reference lines data
   const referenceLines = [
-    { y: investedValue, label: `Invested (${investedValue})`, color: "gray" },
+    {
+      y: investedValue,
+      label: `Invested (${investedValue})`,
+      color: theme.colors.gray[6],
+    },
     ...(upperLimit !== null
       ? [
           {
             y: upperLimit,
             label: `Upper Limit (${upperLimit})`,
-            color: "green",
+            color: theme.colors.green[6],
           },
         ]
       : []),
@@ -59,7 +65,7 @@ export function PriceGraph({
           {
             y: lowerLimit,
             label: `Lower Limit (${lowerLimit})`,
-            color: "red",
+            color: theme.colors.red[6],
           },
         ]
       : []),

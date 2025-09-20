@@ -52,7 +52,7 @@ export function PositionsTable({ positions, prices }: PositionsTableProps) {
             <Table.Tr key={position.product_symbol}>
               <Table.Td>{position.product_symbol}</Table.Td>
               <Table.Td>
-                <Text c={isBuy ? "green" : "red"} fw={500}>
+                <Text c={isBuy ? "green" : "red"} size="sm" fw={500}>
                   <Group>
                     {position.size}{" "}
                     <Pill bg={isBuy ? "green" : "red"}>
