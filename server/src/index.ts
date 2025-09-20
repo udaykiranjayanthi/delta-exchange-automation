@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
   console.log("Client connected", socket.id);
 
   socket.emit("positions", Object.values(positions));
-  socket.emit("prices", Object.values(prices));
+  socket.emit("prices", prices);
   socket.emit("upperLimit", upperLimit);
   socket.emit("lowerLimit", lowerLimit);
 
