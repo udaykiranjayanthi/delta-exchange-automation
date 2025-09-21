@@ -178,6 +178,7 @@ function createDeltaWebsocketConnection() {
 
     if (parsedMessage.type === "error") {
       console.log("Error: ", parsedMessage.message);
+      ws.close();
     }
 
     if (
